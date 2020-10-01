@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "name": "Mac",
+      "includePath": [
+        "/Users/madgnome/Library/Arduino15/packages/esp32/tools/**",
+        "/Users/madgnome/Library/Arduino15/packages/esp32/hardware/esp32/1.0.4/**",
+        "/Users/madgnome/Library/Arduino15/packages/esp32/hardware/esp32/1.0.4/libraries/WiFi/src",
+        "/Users/madgnome/Library/Arduino15/packages/esp32/hardware/esp32/1.0.4/libraries/DNSServer/src",
+        "${workspaceRoot}"
+      ],
+      "defines": ["UBRRH"],
+      "browse": {
+        "limitSymbolsToIncludedHeaders": false,
+        "path": ["${workspaceRoot}"]
+      },
+      "intelliSenseMode": "clang-x64",
+      "compilerPath": "/usr/bin/clang",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "forcedInclude": []
+    }
+  ],
+  "version": 4
+}
