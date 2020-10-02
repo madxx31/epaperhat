@@ -2,7 +2,7 @@
 #include <DNSServer.h>
 #include <ESPAsyncWebServer.h>
 #include "SPIFFS.h"
-#include "epd.h"
+#include "display.h"
 
 // DNSServer dnsServer;
 AsyncWebServer server(80);
@@ -27,17 +27,21 @@ public:
     }
 };
 
+Display disp1(25, 33, 26, 13, 14, 27);
+Display disp2(16, 17, 32, 4, 2, 15);
+Display disp3(22, 23, 5, 21, 19, 18);
+
 void setup()
 {
     Serial.begin(115200);
     // Initialize SPIFFS
+
     if (!SPIFFS.begin(true))
     {
         Serial.println("An Error has occurred while mounting SPIFFS");
         return;
     }
     Serial.print("Setting AP ( Point)…");
-    //your other setup stuff...
     WiFi.softAP("Dasha's hat");
     // dnsServer.start(53, "*", WiFi.softAPIP());
     // server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER); //only when requested from AP
@@ -51,8 +55,6 @@ void setup()
     server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(SPIFFS, "/script.js", "text/javascript");
     });
-
-    // Example of function that holds and HTTP_POST request on 192.168.4.1:80/set_data
     server.on(
         "/set",
         HTTP_POST,
@@ -70,16 +72,27 @@ void setup()
             for (size_t i = 0; i < 128 * 296 / 8; i++)
             {
                 if (i % 16 < 10 && i < 16 * 41)
-                    EPD_SendData((byte)file2.read());
+                {
+                    byte d = file2.read();
+                                 disp1.EPD_SendData(d);
+                    disp2.EPD_SendData(d);
+                    disp3.EPD_SendData(d);
+                }
                 else
-                    EPD_SendData((byte)255);
+                {
+                    disp1.EPD_SendData((byte)255);
+                    disp2.EPD_SendData((byte)255);
+                    disp3.EPD_SendData((byte)255);
+                }
             }
             file2.close();
-            EPD_2IN9D_Show();
+            disp1.EPD_2IN9D_Show();
+            disp2.EPD_2IN9D_Show();
+            disp3.EPD_2IN9D_Show();
         });
     server.begin();
-    EPD_initSPI();
-    EPD_dispInit();
+    // EPD_initSPI();
+    // EPD_dispInit();
 }
 
 void loop()
