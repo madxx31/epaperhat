@@ -7,18 +7,22 @@ private:
     uint8_t PIN_SPI_BUSY;
     uint8_t PIN_SPI_RST;
     uint8_t PIN_SPI_DC;
-    int EPD_Init_2in9d();
+
     void EPD_Reset();
     void EPD_SendCommand(byte command);
     void EPD_2IN9D_ReadBusy(void);
     void EPD_2IN9D_Clear(void);
     void EpdSpiTransferCallback(byte data);
     void EPD_SetFullReg(void);
+    int cursor; //current width coordinate
 
 public:
     Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst, uint8_t dc);
+    int EPD_Init_2in9d();
     const void EPD_2IN9D_Show(void);
     const void EPD_SendData(byte data);
+    void fill(int width);
+    void display_symbol(uint8_t symbol_id);
     ~Display();
 };
 
@@ -30,13 +34,7 @@ public:
 #define LOW 0
 #define HIGH 1
 
-// 22, 23, 5, 21, 19, 18
-// #define PIN_SPI_SCK 22
-// #define PIN_SPI_DIN 23
-// #define PIN_SPI_CS 5
-// #define PIN_SPI_BUSY 21
-// #define PIN_SPI_RST 19
-// #define PIN_SPI_DC 18
+const uint8_t symbol_widths[] = {0, 11, 18, 32, 30, 38, 37, 8, 17, 18, 31, 28, 12, 17, 12, 23, 30, 19, 30, 29, 31, 30, 29, 30, 28, 29, 12, 14, 25, 26, 25, 27, 48, 41, 32, 34, 33, 29, 28, 34, 35, 11, 29, 35, 28, 45, 34, 35, 33, 37, 33, 33, 35, 33, 39, 49, 36, 37, 32, 14, 27, 14, 25, 27, 18, 18, 7, 18, 32, 29, 41, 33, 32, 29, 43, 29, 59, 32, 35, 35, 36, 37, 45, 35, 35, 35, 33, 34, 35, 35, 45, 36, 41, 34, 50, 56, 43, 44, 33, 35, 49, 34, 53};
 
 Display::Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst, uint8_t dc)
 {
@@ -46,6 +44,7 @@ Display::Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst
     PIN_SPI_BUSY = busy;
     PIN_SPI_RST = rst;
     PIN_SPI_DC = dc;
+    cursor = 0;
 
     pinMode(PIN_SPI_BUSY, INPUT);
     pinMode(PIN_SPI_RST, OUTPUT);
@@ -188,7 +187,6 @@ void Display::EPD_2IN9D_Clear(void)
 const void Display::EPD_2IN9D_Show(void)
 {
     Serial.print("\r\nEPD_2IN9D_Show");
-    Serial.print(PIN_SPI_BUSY);
     EPD_SetFullReg();
     EPD_SendCommand(0x12); //DISPLAY REFRESH
     delay(10);             //!!!The delay here is necessary, 200uS at least!!!
@@ -462,6 +460,25 @@ void Display::EPD_SetFullReg(void)
     {
         EPD_SendData(EPD_2IN9D_lut_bb[count]);
     }
+}
+
+void Display::fill(int width)
+{
+    for (size_t i = 0; i < 128 * width / 8; i++)
+    {
+        EPD_SendData((byte)0);
+    }
+}
+
+void Display::display_symbol(uint8_t symbol_id)
+{
+    File f = SPIFFS.open("/font/" + String(symbol_id) + ".bin");
+    int w = symbol_widths[symbol_id];
+    for (size_t i = 0; i < 128 * w / 8; i++)
+    {
+        EPD_SendData((byte)f.read());
+    }
+    f.close();
 }
 
 Display::~Display()

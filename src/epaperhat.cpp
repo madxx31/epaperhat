@@ -63,32 +63,68 @@ void setup()
         [](AsyncWebServerRequest *request, uint8_t *data, size_t len,
            size_t index, size_t total) {
             Serial.println("POST RECEIVED"); // Just for debug
+            disp2.EPD_Init_2in9d();
+            int spacing = 5;
+            int total_width = 0;
             for (int i = 0; i < len; ++i)
             {
-                Serial.print((char)data[i]); // typecast because String takes uint8_t as something else than char
+                total_width += symbol_widths[data[i]];
+                Serial.print(String(data[i])); // typecast because String takes uint8_t as something else than char
+
             }
-            request->send(200, "text/plain", "Some message");
-            File file2 = SPIFFS.open("/A.bin");
-            for (size_t i = 0; i < 128 * 296 / 8; i++)
+            total_width += (spacing * (len - 1));
+            if (total_width <= 296)
             {
-                if (i % 16 < 10 && i < 16 * 41)
+                disp2.fill(ceil((296 - total_width) / 2));
+                for (int i = 0; i < len; ++i)
                 {
-                    byte d = file2.read();
-                                 disp1.EPD_SendData(d);
-                    disp2.EPD_SendData(d);
-                    disp3.EPD_SendData(d);
+                    disp2.display_symbol(data[len - i - 1]);
+                    disp2.fill(spacing);
                 }
-                else
-                {
-                    disp1.EPD_SendData((byte)255);
-                    disp2.EPD_SendData((byte)255);
-                    disp3.EPD_SendData((byte)255);
-                }
+                disp2.fill(floor((296 - total_width) / 2));
             }
-            file2.close();
-            disp1.EPD_2IN9D_Show();
+            Serial.print("Total width ");
+            Serial.print(total_width);
+            request->send(200, "text/plain", "Some message");
+            // File file1 = SPIFFS.open("/font/&.bin");
+            // File file2 = SPIFFS.open("/font/Ы.bin");
+            // File file3 = SPIFFS.open("/font/\\.bin");
+            // for (size_t i = 0; i < 128 * 296 / 8; i++)
+            // {
+            //     if (i < 128 / 8 * get_symbol_width("&"))
+            //     {
+            //         byte d = file1.read();
+            //         disp1.EPD_SendData(d);
+            //         disp2.EPD_SendData(d);
+            //         disp3.EPD_SendData(d);
+            //     }
+            //     else if (i < 128 / 8 * get_symbol_width("&") + 128 / 8 * get_symbol_width("Ы"))
+            //     {
+            //         byte d = file2.read();
+            //         disp1.EPD_SendData(d);
+            //         disp2.EPD_SendData(d);
+            //         disp3.EPD_SendData(d);
+            //     }
+            //     else if (i < 128 / 8 * get_symbol_width("&") + 128 / 8 * get_symbol_width("Ы") + 128 / 8 * get_symbol_width("\\"))
+            //     {
+            //         byte d = file3.read();
+            //         disp1.EPD_SendData(d);
+            //         disp2.EPD_SendData(d);
+            //         disp3.EPD_SendData(d);
+            //     }
+            //     else
+            //     {
+            //         disp1.EPD_SendData((byte)0);
+            //         disp2.EPD_SendData((byte)0);
+            //         disp3.EPD_SendData((byte)0);
+            //     }
+            // }
+            // file1.close();
+            // file2.close();
+            // file3.close();
+            // disp1.EPD_2IN9D_Show();
             disp2.EPD_2IN9D_Show();
-            disp3.EPD_2IN9D_Show();
+            // disp3.EPD_2IN9D_Show();
         });
     server.begin();
     // EPD_initSPI();
