@@ -1,3 +1,25 @@
+enum align
+{
+    CENTER,
+    RIGHT,
+    LEFT,
+    WIDTH
+};
+
+int spacing = 10;
+const uint8_t symbol_widths[] = {0, 11, 18, 32, 30, 38, 37, 8, 17, 18, 31, 28, 12, 17, 12, 23, 30, 19, 30, 29, 31, 30, 29, 30, 28, 29, 12, 14, 25, 26, 25, 27, 48, 41, 32, 34, 33, 29, 28, 34, 35, 11, 29, 35, 28, 45, 34, 35, 33, 37, 33, 33, 35, 33, 39, 49, 36, 37, 32, 14, 27, 14, 25, 27, 18, 18, 7, 18, 32, 29, 41, 33, 32, 29, 43, 29, 59, 32, 35, 35, 36, 37, 45, 35, 35, 35, 33, 34, 35, 35, 45, 36, 41, 34, 50, 56, 43, 44, 33, 35, 49, 34, 53};
+
+int get_width(uint8_t *data, size_t len)
+{
+    int total_width = 0;
+    for (int i = 0; i < len; ++i)
+    {
+        total_width += symbol_widths[data[i]];
+    }
+    total_width += ((len - 1) * spacing);
+    return total_width;
+}
+
 class Display
 {
 private:
@@ -23,6 +45,7 @@ public:
     const void EPD_SendData(byte data);
     void fill(int width);
     void display_symbol(uint8_t symbol_id);
+    void display_text(uint8_t *text, size_t len, align a);
     ~Display();
 };
 
@@ -31,10 +54,8 @@ public:
 #define UWORD uint16_t
 #define GPIO_PIN_SET 1
 #define GPIO_PIN_RESET 0
-#define LOW 0
-#define HIGH 1
-
-const uint8_t symbol_widths[] = {0, 11, 18, 32, 30, 38, 37, 8, 17, 18, 31, 28, 12, 17, 12, 23, 30, 19, 30, 29, 31, 30, 29, 30, 28, 29, 12, 14, 25, 26, 25, 27, 48, 41, 32, 34, 33, 29, 28, 34, 35, 11, 29, 35, 28, 45, 34, 35, 33, 37, 33, 33, 35, 33, 39, 49, 36, 37, 32, 14, 27, 14, 25, 27, 18, 18, 7, 18, 32, 29, 41, 33, 32, 29, 43, 29, 59, 32, 35, 35, 36, 37, 45, 35, 35, 35, 33, 34, 35, 35, 45, 36, 41, 34, 50, 56, 43, 44, 33, 35, 49, 34, 53};
+// #define LOW 0
+// #define HIGH 1
 
 Display::Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst, uint8_t dc)
 {
@@ -479,6 +500,85 @@ void Display::display_symbol(uint8_t symbol_id)
         EPD_SendData((byte)f.read());
     }
     f.close();
+}
+
+void Display::display_text(uint8_t *text, size_t len, align a)
+{
+    EPD_Init_2in9d();
+    int total_width = get_width(text, len);
+    switch (a)
+    {
+    case CENTER:
+    {
+        fill(ceil((296 - total_width) / 2));
+        for (int i = 0; i < len; ++i)
+        {
+            display_symbol(text[len - i - 1]);
+            if (i != len - 1)
+                fill(spacing);
+        }
+        fill(floor((296 - total_width) / 2));
+        break;
+    }
+    case LEFT:
+    {
+        fill(floor(296 - total_width));
+        for (int i = 0; i < len; ++i)
+        {
+            display_symbol(text[len - i - 1]);
+            if (i != len - 1)
+                fill(spacing);
+        }
+        break;
+    }
+    case RIGHT:
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            display_symbol(text[len - i - 1]);
+            if (i != len - 1)
+                fill(spacing);
+        }
+        fill(floor(296 - total_width));
+        break;
+    }
+    case WIDTH:
+    {
+        int spread = 296 - total_width;
+        int n_spaces = 0;
+        for (int i = 0; i < len; ++i)
+        {
+            if (text[i] == 0)
+                n_spaces++;
+        }
+        Serial.println(len);
+        Serial.println(total_width);
+
+        for (int i = 0; i < len; ++i)
+        {
+            display_symbol(text[len - i - 1]);
+            if (i != len - 1)
+            {
+                fill(spacing);
+                if (n_spaces == 0)
+                {
+                    int add = spread / (len - i - 1);
+                    spread -= add;
+                    fill(add);
+                }
+            }
+            if (text[len - i - 1] == 0)
+            {
+                int add = spread / n_spaces;
+                spread -= add;
+                n_spaces -= 1;
+                fill(add);
+            }
+        }
+        break;
+    }
+    }
+    EPD_2IN9D_Show();
 }
 
 Display::~Display()
