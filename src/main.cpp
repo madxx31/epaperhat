@@ -4,7 +4,12 @@
 #include "SPIFFS.h"
 #include "display.h"
 
-void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+DNSServer dnsServer;
+AsyncWebServer server(80);
+Display disp1(25, 33, 26, 13, 14, 27);
+Display disp2(16, 17, 32, 4, 2, 15);
+Display disp3(22, 23, 5, 21, 19, 18);
+
 class CaptiveRequestHandler : public AsyncWebHandler
 {
 public:
@@ -22,29 +27,7 @@ public:
     }
 };
 
-DNSServer dnsServer;
-AsyncWebServer server(80);
-Display disp1(25, 33, 26, 13, 14, 27);
-Display disp2(16, 17, 32, 4, 2, 15);
-Display disp3(22, 23, 5, 21, 19, 18);
-
-void calc_symbol_on_threshold(uint8_t *text, size_t len, int threshold, int &idx, bool &is_spacing, float &overflow)
-{
-    int temp_width = 0;
-    is_spacing = false;
-    for (; idx < len; ++idx)
-    {
-        is_spacing = false;
-        temp_width += symbol_widths[text[idx]];
-        if (temp_width > threshold)
-            break;
-        is_spacing = true;
-        temp_width += spacing;
-        if (temp_width > threshold)
-            break;
-    }
-    overflow = temp_width - threshold;
-}
+void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
 
 void setup()
 {
@@ -102,6 +85,24 @@ void update_html(uint8_t *data, size_t len)
     f = SPIFFS.open("/index.html", "w");
     f.print(html);
     f.close();
+}
+
+void calc_symbol_on_threshold(uint8_t *text, size_t len, int threshold, int &idx, bool &is_spacing, float &overflow)
+{
+    int temp_width = 0;
+    is_spacing = false;
+    for (; idx < len; ++idx)
+    {
+        is_spacing = false;
+        temp_width += symbol_widths[text[idx]];
+        if (temp_width > threshold)
+            break;
+        is_spacing = true;
+        temp_width += spacing;
+        if (temp_width > threshold)
+            break;
+    }
+    overflow = temp_width - threshold;
 }
 
 void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
