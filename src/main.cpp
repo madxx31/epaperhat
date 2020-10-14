@@ -77,9 +77,9 @@ void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size
     int total_width = get_width(data, len);
     if (total_width <= 296)
     {
-        disp1.clear();
+        disp1.display_clear();
         disp2.display_text(data, len, CENTER);
-        disp3.clear();
+        disp3.display_clear();
     }
     else if (total_width <= 296 * 3)
     {

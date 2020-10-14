@@ -3,6 +3,17 @@
     "python.formatting.provider": "autopep8",
     "files.associations": {
         "functional": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "limits": "cpp",
+        "sstream": "cpp",
+        "system_error": "cpp"
     }
 }
