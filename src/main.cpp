@@ -72,6 +72,38 @@ void loop()
     dnsServer.processNextRequest();
 }
 
+const String symbols[] = {
+    String(" "), String("!"), String("\""), String("#"), String("$"), String("%"), String("&"), String("'"), String("("),
+    String(")"), String("*"), String("+"), String(","), String("-"), String("."), String("/"), String("0"), String("1"),
+    String("2"), String("3"), String("4"), String("5"), String("6"), String("7"), String("8"), String("9"), String(":"),
+    String(";"), String("<"), String("="), String(">"), String("?"), String("@"), String("A"), String("B"), String("C"),
+    String("D"), String("E"), String("F"), String("G"), String("H"), String("I"), String("J"), String("K"), String("L"),
+    String("M"), String("N"), String("O"), String("P"), String("Q"), String("R"), String("S"), String("T"), String("U"),
+    String("V"), String("W"), String("X"), String("Y"), String("Z"), String("["), String("\\"), String("]"), String("^"),
+    String("_"), String("`"), String("{"), String("|"), String("}"), String("~"), String("Ё"), String("А"), String("Б"),
+    String("В"), String("Г"), String("Д"), String("Е"), String("Ж"), String("З"), String("И"), String("Й"), String("К"),
+    String("Л"), String("М"), String("Н"), String("О"), String("П"), String("Р"), String("С"), String("Т"), String("У"),
+    String("Ф"), String("Х"), String("Ц"), String("Ч"), String("Ш"), String("Щ"), String("Ъ"), String("Ы"), String("Ь"),
+    String("Э"), String("Ю"), String("Я"), String("№")};
+
+void update_html(uint8_t *data, size_t len)
+{
+    String entry = "";
+    for (size_t i = 0; i < len; i++)
+    {
+        entry += symbols[data[i]];
+    }
+    Serial.println(entry);
+    File f = SPIFFS.open("/index.html");
+    String html = f.readString();
+    f.close();
+    html.replace(String("<p class=\"history-item\">") + entry + String("</p>"), "");
+    html.replace(String("<div id=\"history\">"), String("<div id=\"history\"><p class=\"history-item\">") + entry + String("</p>"));
+    f = SPIFFS.open("/index.html", "w");
+    f.print(html);
+    f.close();
+}
+
 void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
 {
     int total_width = get_width(data, len);
@@ -80,6 +112,7 @@ void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size
         disp1.display_clear();
         disp2.display_text(data, len, CENTER);
         disp3.display_clear();
+        update_html(data, len);
     }
     else if (total_width <= 296 * 3)
     {
@@ -94,6 +127,7 @@ void render_text(AsyncWebServerRequest *request, uint8_t *data, size_t len, size
         calc_symbol_on_threshold(&data[split1], len - split1, 296, split2, is_spacing, overflow);
         disp2.display_text(&data[split1], split2, WIDTH);
         disp3.display_text(&data[split1 + split2], len - split1 - split2, LEFT);
+        update_html(data, len);
     }
     request->send(200, "text/plain", "OK");
 }

@@ -35,7 +35,7 @@ body {
 }
 
 .chevron {
-  padding: 3px 17px 0px 10px;
+  padding: 2px 20px 0px 10px;
 }
 .chevron::before {
   color: #ee573a;
@@ -56,7 +56,7 @@ body {
   left: 0;
   transform: rotate(45deg);
 }
-.history {
+#history {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
