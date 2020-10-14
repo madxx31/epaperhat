@@ -36,7 +36,6 @@ private:
     void EPD_2IN9D_Clear(void);
     void EpdSpiTransferCallback(byte data);
     void EPD_SetFullReg(void);
-    int cursor; //current width coordinate
 
 public:
     Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst, uint8_t dc);
@@ -44,6 +43,7 @@ public:
     const void EPD_2IN9D_Show(void);
     const void EPD_SendData(byte data);
     void fill(int width);
+    void clear();
     void display_symbol(uint8_t symbol_id);
     void display_text(uint8_t *text, size_t len, align a);
     ~Display();
@@ -65,7 +65,6 @@ Display::Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst
     PIN_SPI_BUSY = busy;
     PIN_SPI_RST = rst;
     PIN_SPI_DC = dc;
-    cursor = 0;
 
     pinMode(PIN_SPI_BUSY, INPUT);
     pinMode(PIN_SPI_RST, OUTPUT);
@@ -77,7 +76,6 @@ Display::Display(uint8_t sck, uint8_t din, uint8_t cs, uint8_t busy, uint8_t rst
 
     digitalWrite(PIN_SPI_CS, HIGH);
     digitalWrite(PIN_SPI_SCK, LOW);
-    EPD_Init_2in9d();
 }
 
 int Display::EPD_Init_2in9d()
@@ -578,6 +576,13 @@ void Display::display_text(uint8_t *text, size_t len, align a)
         break;
     }
     }
+    EPD_2IN9D_Show();
+}
+
+void Display::clear()
+{
+    EPD_Init_2in9d();
+    fill(296);
     EPD_2IN9D_Show();
 }
 

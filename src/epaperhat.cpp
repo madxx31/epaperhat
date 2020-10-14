@@ -84,8 +84,12 @@ void setup()
             int total_width = get_width(data, len);
             Serial.println(total_width);
             if (total_width <= 296)
-                disp2.display_text(data, len, CENTER);
-            else
+            {
+                disp1.clear();
+                disp2.display_text(data, len, CENTER); //clear 1 3 !
+                disp3.clear();
+            }
+            else if (total_width <= 296 * 3)
             {
                 int split1 = 0;
                 bool is_spacing = false;
