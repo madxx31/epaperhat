@@ -16,7 +16,7 @@ window.onload = function () {
     for (var i = 0; i < text.length; i++) {
       view[i] = symbols.indexOf(text.charAt(i));
     }
-    // console.log(view, buffer);
+    if (text.length == 0) return;
     xhr.send(buffer);
     if (
       !Array.from(document.getElementsByClassName("history-item"))
@@ -26,6 +26,10 @@ window.onload = function () {
       var newEntry = document.createElement("p");
       newEntry.innerHTML = text;
       newEntry.classList.add("history-item");
+      newEntry.addEventListener("click", () => {
+        input.value = elem.innerHTML;
+        post();
+      });
       document.getElementById("history").prepend(newEntry);
     }
   }
